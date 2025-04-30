@@ -1,4 +1,9 @@
-import { Injectable, UnauthorizedException, ConflictException, Logger } from '@nestjs/common';
+import {
+  Injectable,
+  UnauthorizedException,
+  ConflictException,
+  Logger,
+} from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { UsersService } from '../users/users.service';
 import * as bcrypt from 'bcrypt';
@@ -8,7 +13,7 @@ import { LoginDto } from './dto/login.dto';
 @Injectable()
 export class AuthService {
   private logger = new Logger('AuthService');
-  
+
   constructor(
     private usersService: UsersService,
     private jwtService: JwtService,
@@ -25,8 +30,10 @@ export class AuthService {
 
     // Hash password with explicit salt rounds
     const hashedPassword = await bcrypt.hash(password, 10);
-    
-    this.logger.debug(`Registration: ${email} - Hash: ${hashedPassword.substring(0, 20)}...`);
+
+    this.logger.debug(
+      `Registration: ${email} - Hash: ${hashedPassword.substring(0, 20)}...`,
+    );
 
     // Create user
     const user = await this.usersService.create({
@@ -42,7 +49,7 @@ export class AuthService {
 
   async login(loginDto: LoginDto) {
     const { email, password } = loginDto;
-    
+
     this.logger.debug(`Login attempt for: ${email}`);
 
     try {
@@ -52,14 +59,18 @@ export class AuthService {
         this.logger.warn(`User not found: ${email}`);
         throw new UnauthorizedException('Invalid credentials');
       }
-      
-      this.logger.debug(`User found: ${user.email}, hash: ${user.password.substring(0, 20)}...`);
+
+      this.logger.debug(
+        `User found: ${user.email}, hash: ${user.password.substring(0, 20)}...`,
+      );
 
       // Verify password - use direct string comparison for debug
       const isPasswordValid = await bcrypt.compare(password, user.password);
-      
+
       this.logger.debug(`Password comparison result: ${isPasswordValid}`);
-      this.logger.debug(`Input password: "${password}", length: ${password.length}`);
+      this.logger.debug(
+        `Input password: "${password}", length: ${password.length}`,
+      );
 
       if (!isPasswordValid) {
         throw new UnauthorizedException('Invalid credentials');
@@ -67,7 +78,7 @@ export class AuthService {
 
       // Generate token
       const payload = { sub: user.id, email: user.email, role: user.role };
-      
+
       return {
         access_token: this.jwtService.sign(payload),
         user: {
